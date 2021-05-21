@@ -10,9 +10,14 @@ public class Main : MonoBehaviour
     LSTMManager.LSTMGroup LSTMGroup;
     ComputeShader LSTMShader;
     int Population = 50;
+    int AmmoPopulation = 100;
+
+    public float SpawnGrounds = 100;
 
     public GameObject Agent;
+    public GameObject Ammo;
     public static List<Agent> Agents = new List<Agent>();
+    public static List<Ammo> Ammos = new List<Ammo>();
 
     public float TimeScale = 1;
     public static float UpdateRate = 1f / 60f;
@@ -29,7 +34,7 @@ public class Main : MonoBehaviour
         Application.runInBackground = true;
 
         LSTMShader = LSTMManager.GenerateComputeShader();
-        LSTMGroup = LSTMManager.CreateLSTMGroup(new int[] { 16, 25, 20, 10, 2 }, Population);
+        LSTMGroup = LSTMManager.CreateLSTMGroup(new int[] { 17, 25, 20, 10, 2 }, Population);
         LSTMManager.AssignLSTMGroupToShader(LSTMGroup, LSTMShader);
 
         LSTMGroup.Initialize();
@@ -50,11 +55,18 @@ public class Main : MonoBehaviour
         for (int i = 0; i < Population; i++)
         {
             GameObject NewAgent = Instantiate(Agent);
-            NewAgent.transform.position = new Vector2(UnityEngine.Random.Range(-50f, 50f), UnityEngine.Random.Range(-50f, 50f));
+            NewAgent.transform.position = new Vector2(UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds), UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds));
             Agent A = NewAgent.GetComponent<Agent>();
             A.Network = i;
             A.Group = LSTMGroup;
             Agents.Add(A);
+        }
+
+        for (int i = 0; i < AmmoPopulation; i++)
+        {
+            GameObject NewAgent = Instantiate(Ammo);
+            NewAgent.transform.position = new Vector2(UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds), UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds));
+            Ammos.Add(NewAgent.GetComponent<Ammo>());
         }
     }
 
@@ -89,7 +101,7 @@ public class Main : MonoBehaviour
             {
                 int A = UnityEngine.Random.Range(0, Agents.Count / 4);
                 Agents[i].Reset();
-                Agents[i].transform.position = new Vector2(UnityEngine.Random.Range(-50f, 50f), UnityEngine.Random.Range(-50f, 50f));
+                Agents[i].transform.position = new Vector2(UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds), UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds));
 
                 LSTMGroup.Copy(Agents[A].Network, Agents[i].Network);
                 LSTMGroup.Mutate(Agents[i].Network);
@@ -98,7 +110,18 @@ public class Main : MonoBehaviour
             for (int i = 0; i < Agents.Count / 4; i++)
             {
                 Agents[i].Reset();
-                Agents[i].transform.position = new Vector2(UnityEngine.Random.Range(-50f, 50f), UnityEngine.Random.Range(-50f, 50f));
+                Agents[i].transform.position = new Vector2(UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds), UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds));
+            }
+
+            for (int i = 0; i < Ammos.Count; i++)
+            {
+                Destroy(Ammos[i].gameObject);
+            }
+            for (int i = 0; i < AmmoPopulation; i++)
+            {
+                GameObject NewAgent = Instantiate(Ammo);
+                NewAgent.transform.position = new Vector2(UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds), UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds));
+                Ammos.Add(NewAgent.GetComponent<Ammo>());
             }
         }
     }
@@ -108,6 +131,6 @@ public class Main : MonoBehaviour
         Debug.Log("Disposing");
         LSTMManager.DisposeGroup(LSTMGroup);
         Debug.Log("Saving");
-        //LSTMGroup.SaveFullGroup(@"C:\Users\LenovoY720\Documents\" + FileLocation);
+        LSTMGroup.SaveFullGroup(@"C:\Users\LenovoY720\Documents\" + FileLocation);
     }
 }

@@ -4,15 +4,9 @@ using UnityEngine;
 
 public class Wall : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        Agent A = collision.GetComponent<Agent>();
+        if (A != null && !A.Dead) A.Dead = true;
     }
 }

@@ -50,7 +50,7 @@ public class Projectile : MonoBehaviour
                 if (Agents[0] != Parent)
                 {
                     Vector2 Dir = transform.position - Agents[0].transform.position;
-                    if (Dir.sqrMagnitude < 1)
+                    if (Dir.sqrMagnitude < 0.5f)
                     {
                         Agents[0].Dead = true;
                         if (Agents[0] != FixedParent)

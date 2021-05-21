@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class Ammo : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        Agent A = collision.GetComponent<Agent>();
+        if (A != null && A.Ammo < A.MaxAmmo)
+        {
+            A.Fitness += 10;
+            Main.Ammos.Remove(this);
+            Destroy(gameObject);
+            A.Ammo++;
+        }
     }
 }

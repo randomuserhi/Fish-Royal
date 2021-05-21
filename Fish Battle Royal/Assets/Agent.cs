@@ -45,15 +45,22 @@ public class Agent : MonoBehaviour
 
     void Shoot()
     {
-        GameObject O = Instantiate(Projectile);
-        Projectile P = O.GetComponent<Projectile>();
-        P.Parent = this;
-        P.FixedParent = this;
-        O.transform.position = transform.position;
-        O.transform.rotation = transform.rotation;
+        if (Ammo > 0)
+        {
+            GameObject O = Instantiate(Projectile);
+            Projectile P = O.GetComponent<Projectile>();
+            P.Parent = this;
+            P.FixedParent = this;
+            O.transform.position = transform.position;
+            O.transform.rotation = transform.rotation;
+            Ammo--;
+        }
     }
 
     public float Fitness;
+
+    public int Ammo = 0;
+    public int MaxAmmo = 5;
 
     RaycastHit2D Ray;
     // Update is called once per frame
@@ -69,7 +76,7 @@ public class Agent : MonoBehaviour
 
         if (Dead) return;
 
-        Fitness += Time.fixedDeltaTime;
+        Fitness += Time.fixedDeltaTime + 3 * Speed * Time.fixedDeltaTime;
 
         //Network configuration
         int InputOffset = Group.GetInputOffset(Network);
@@ -132,6 +139,8 @@ public class Agent : MonoBehaviour
             }
             Rot.eulerAngles += new Vector3(0, 0, 360f / VisionResolution);
         }
+
+        Group.Inputs[InputOffset + VisionResolution * 2] = Ammo == 0 ? -1 : Ammo == MaxAmmo ? 1 : 0;
 
         //Shooting
         if (Group.Outputs[OutputOffset + 1] > 0)
