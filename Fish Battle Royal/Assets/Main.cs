@@ -93,7 +93,7 @@ public class Main : MonoBehaviour
             //Agents = Agents.OrderBy(A => A.Fitness).ToList();
             Agents = Agents.OrderByDescending(A => A.Fitness).ToList();
 
-            float Avg = Agents.Sum(A => A.Fitness + (A.transform.position - A.SpawnPoint).sqrMagnitude) / Agents.Count;
+            float Avg = Agents.Sum(A => A.Fitness + (A.transform.position - A.SpawnPoint).magnitude) / Agents.Count;
             Debug.Log(Agents[0].Fitness + ", " + Agents[Agents.Count - 1].Fitness + " > " + Avg);
 
             for (int i = Agents.Count / 4; i < Agents.Count; i++)
