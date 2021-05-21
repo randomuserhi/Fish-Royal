@@ -14,7 +14,7 @@ public class Agent : MonoBehaviour
 
     //Input stuff
     int VisionResolution = 8;
-    float VisionFallOff = 10;
+    float VisionFallOff = 1;
 
     //Physics related stuff
     float PrevAngle = 0;

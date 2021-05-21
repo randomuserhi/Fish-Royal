@@ -167,7 +167,7 @@ MonoBehaviour:
   Ammo: {fileID: 9069153887866536136, guid: fd733ac9263942444a27445be7638ff8, type: 3}
   TimeScale: 1
   GenerationTimer: 10
-  MaxTimer: 10
+  MaxTimer: 20
 --- !u!20 &519420031
 Camera:
   m_ObjectHideFlags: 0
