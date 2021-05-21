@@ -17,7 +17,6 @@ public class Main : MonoBehaviour
     public GameObject Agent;
     public GameObject Ammo;
     public static List<Agent> Agents = new List<Agent>();
-    public static List<Ammo> Ammos = new List<Ammo>();
 
     public float TimeScale = 1;
     public static float UpdateRate = 1f / 60f;
@@ -66,7 +65,6 @@ public class Main : MonoBehaviour
         {
             GameObject NewAgent = Instantiate(Ammo);
             NewAgent.transform.position = new Vector2(UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds), UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds));
-            Ammos.Add(NewAgent.GetComponent<Ammo>());
         }
     }
 
@@ -113,7 +111,8 @@ public class Main : MonoBehaviour
                 Agents[i].transform.position = new Vector2(UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds), UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds));
             }
 
-            for (int i = 0; i < Ammos.Count; i++)
+            Ammo[] Ammos = GameObject.FindObjectsOfType<Ammo>();
+            for (int i = 0; i < Ammos.Length; i++)
             {
                 Destroy(Ammos[i].gameObject);
             }
@@ -121,7 +120,6 @@ public class Main : MonoBehaviour
             {
                 GameObject NewAgent = Instantiate(Ammo);
                 NewAgent.transform.position = new Vector2(UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds), UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds));
-                Ammos.Add(NewAgent.GetComponent<Ammo>());
             }
         }
     }

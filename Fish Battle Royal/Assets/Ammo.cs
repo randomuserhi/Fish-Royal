@@ -10,7 +10,6 @@ public class Ammo : MonoBehaviour
         if (A != null && A.Ammo < A.MaxAmmo)
         {
             A.Fitness += 10;
-            Main.Ammos.Remove(this);
             Destroy(gameObject);
             A.Ammo++;
         }
