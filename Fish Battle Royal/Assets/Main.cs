@@ -10,7 +10,7 @@ public class Main : MonoBehaviour
     LSTMManager.LSTMGroup LSTMGroup;
     ComputeShader LSTMShader;
     int Population = 50;
-    int AmmoPopulation = 100;
+    int AmmoPopulation = 300;
 
     public float SpawnGrounds = 100;
 
