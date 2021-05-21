@@ -33,7 +33,7 @@ public class Main : MonoBehaviour
         Application.runInBackground = true;
 
         LSTMShader = LSTMManager.GenerateComputeShader();
-        LSTMGroup = LSTMManager.CreateLSTMGroup(new int[] { 17, 25, 20, 10, 2 }, Population);
+        LSTMGroup = LSTMManager.CreateLSTMGroup(new int[] { 18, 25, 20, 10, 2 }, Population);
         LSTMManager.AssignLSTMGroupToShader(LSTMGroup, LSTMShader);
 
         LSTMGroup.Initialize();
@@ -58,6 +58,7 @@ public class Main : MonoBehaviour
             Agent A = NewAgent.GetComponent<Agent>();
             A.Network = i;
             A.Group = LSTMGroup;
+            A.SpawnPoint = NewAgent.transform.position;
             Agents.Add(A);
         }
 
@@ -92,7 +93,7 @@ public class Main : MonoBehaviour
             //Agents = Agents.OrderBy(A => A.Fitness).ToList();
             Agents = Agents.OrderByDescending(A => A.Fitness).ToList();
 
-            float Avg = Agents.Sum(A => A.Fitness) / Agents.Count;
+            float Avg = Agents.Sum(A => A.Fitness + (A.transform.position - A.SpawnPoint).sqrMagnitude) / Agents.Count;
             Debug.Log(Agents[0].Fitness + ", " + Agents[Agents.Count - 1].Fitness + " > " + Avg);
 
             for (int i = Agents.Count / 4; i < Agents.Count; i++)
@@ -100,6 +101,7 @@ public class Main : MonoBehaviour
                 int A = UnityEngine.Random.Range(0, Agents.Count / 4);
                 Agents[i].Reset();
                 Agents[i].transform.position = new Vector2(UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds), UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds));
+                Agents[i].SpawnPoint = Agents[i].transform.position;
 
                 LSTMGroup.Copy(Agents[A].Network, Agents[i].Network);
                 LSTMGroup.Mutate(Agents[i].Network);
@@ -109,6 +111,7 @@ public class Main : MonoBehaviour
             {
                 Agents[i].Reset();
                 Agents[i].transform.position = new Vector2(UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds), UnityEngine.Random.Range(-SpawnGrounds, SpawnGrounds));
+                Agents[i].SpawnPoint = Agents[i].transform.position;
             }
 
             Ammo[] Ammos = GameObject.FindObjectsOfType<Ammo>();

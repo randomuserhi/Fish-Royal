@@ -62,6 +62,8 @@ public class Agent : MonoBehaviour
     public int Ammo = 0;
     public int MaxAmmo = 5;
 
+    public Vector3 SpawnPoint;
+
     RaycastHit2D Ray;
     // Update is called once per frame
     public void FixedUpdate()
@@ -140,7 +142,8 @@ public class Agent : MonoBehaviour
             Rot.eulerAngles += new Vector3(0, 0, 360f / VisionResolution);
         }
 
-        Group.Inputs[InputOffset + VisionResolution * 2] = Ammo == 0 ? -1 : Ammo == MaxAmmo ? 1 : 0;
+        Group.Inputs[InputOffset + VisionResolution * 2] = Group.Outputs[OutputOffset];
+        Group.Inputs[InputOffset + VisionResolution * 2 + 1] = Ammo == 0 ? -1 : Ammo == MaxAmmo ? 1 : 0;
 
         //Shooting
         if (Group.Outputs[OutputOffset + 1] > 0)
