@@ -19,7 +19,7 @@ public class Agent : MonoBehaviour
     //Physics related stuff
     float PrevAngle = 0;
     float Speed = 0;
-    float ResidualSpeed = 0.2f;
+    float ResidualSpeed = 0f;
 
     public bool Dead = false;
 

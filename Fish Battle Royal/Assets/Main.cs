@@ -116,6 +116,11 @@ public class Main : MonoBehaviour
             {
                 Destroy(Ammos[i].gameObject);
             }
+            Projectile[] Projectiles = GameObject.FindObjectsOfType<Projectile>();
+            for (int i = 0; i < Projectiles.Length; i++)
+            {
+                Destroy(Projectiles[i].gameObject);
+            }
             for (int i = 0; i < AmmoPopulation; i++)
             {
                 GameObject NewAgent = Instantiate(Ammo);
