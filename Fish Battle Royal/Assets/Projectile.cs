@@ -13,8 +13,8 @@ public class Projectile : MonoBehaviour
         RB = GetComponent<Rigidbody2D>();
     }
 
-    float Speed = 8f;
-    float TurnRate = 180f;
+    float Speed = 25f;
+    float TurnRate = 360f;
     public Agent Parent = null;
     public Agent FixedParent = null;
     float Timer = 3f;

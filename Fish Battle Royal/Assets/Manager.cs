@@ -72,6 +72,86 @@ public class LSTMManager
             File.WriteAllBytes(FilePath + ".LSTM", Data);
         }
 
+        private void _HeavyMutate(ref int Offset, int WeightSize, int WeightStateSize, int BiasSize)
+        {
+            const float Chance = 0.5f;
+            for (int z = 0; z < 4; z++)
+            {
+                for (int j = 0; j < WeightSize; j++, Offset++)
+                {
+                    float MutationChance = UnityEngine.Random.Range(0f, 1f);
+                    if (MutationChance < Chance)
+                    {
+                        float MutationOption = UnityEngine.Random.Range(0f, 1f);
+                        if (MutationOption < 0.25f) WeightsBiases[Offset] *= -1f;
+                        else if (MutationOption < 0.5f) WeightsBiases[Offset] += UnityEngine.Random.Range(0f, 1f);
+                        else if (MutationOption < 0.75f) WeightsBiases[Offset] -= UnityEngine.Random.Range(0f, 1f);
+                        else WeightsBiases[Offset] = UnityEngine.Random.Range(-1f, 1f);
+                    }
+
+                    WeightsBiases[Offset] += UnityEngine.Random.Range(-0.3f, 0.3f);
+                }
+                for (int j = 0; j < WeightStateSize; j++, Offset++)
+                {
+                    float MutationChance = UnityEngine.Random.Range(0f, 1f);
+                    if (MutationChance < Chance)
+                    {
+                        float MutationOption = UnityEngine.Random.Range(0f, 1f);
+                        if (MutationOption < 0.25f) WeightsBiases[Offset] *= -1f;
+                        else if (MutationOption < 0.5f) WeightsBiases[Offset] += UnityEngine.Random.Range(0f, 1f);
+                        else if (MutationOption < 0.75f) WeightsBiases[Offset] -= UnityEngine.Random.Range(0f, 1f);
+                        else WeightsBiases[Offset] = UnityEngine.Random.Range(-1f, 1f);
+                    }
+
+                    WeightsBiases[Offset] += UnityEngine.Random.Range(-0.3f, 0.3f);
+                }
+                for (int j = 0; j < BiasSize; j++, Offset++)
+                {
+                    float MutationChance = UnityEngine.Random.Range(0f, 1f);
+                    if (MutationChance < Chance)
+                    {
+                        float MutationOption = UnityEngine.Random.Range(0f, 1f);
+                        if (MutationOption < 0.25f) WeightsBiases[Offset] *= -1f;
+                        else if (MutationOption < 0.5f) WeightsBiases[Offset] += UnityEngine.Random.Range(0f, 1f);
+                        else if (MutationOption < 0.75f) WeightsBiases[Offset] -= UnityEngine.Random.Range(0f, 1f);
+                        else WeightsBiases[Offset] = UnityEngine.Random.Range(-1f, 1f);
+                    }
+
+                    WeightsBiases[Offset] += UnityEngine.Random.Range(-0.3f, 0.3f);
+                }
+            }
+        }
+        public void HeavyMutate(int Network)
+        {
+            int PopulationOffset = Population - 1 - Network;
+            _WeightsBiases.GetData(WeightsBiases);
+
+            int WeightSize = WeightBiasInfo[0].Size;
+            int WeightStateSize = WeightBiasInfo[1].Size;
+            int BiasSize = NodeCellInfo[1].Size;
+            int StrideSize = (WeightSize + WeightStateSize + BiasSize) * 4;
+            int Offset = Network * StrideSize;
+
+            _HeavyMutate(ref Offset, WeightSize, WeightStateSize, BiasSize);
+
+            Offset += StrideSize * PopulationOffset;
+
+            for (int i = 1, k = 2; i < Structure.Length - 1; i++, k++)
+            {
+                WeightSize = WeightBiasInfo[i * 2].Size;
+                WeightStateSize = WeightBiasInfo[i * 2 + 1].Size;
+                BiasSize = NodeCellInfo[k].Size;
+                StrideSize = (WeightSize + WeightStateSize + BiasSize) * 4;
+                Offset += Network * StrideSize;
+
+                _HeavyMutate(ref Offset, WeightSize, WeightStateSize, BiasSize);
+
+                Offset += StrideSize * PopulationOffset;
+            }
+
+            _WeightsBiases.SetData(WeightsBiases);
+        }
+
         private void _Mutate(ref int Offset, int WeightSize, int WeightStateSize, int BiasSize)
         {
             const float Chance = 0.1f;

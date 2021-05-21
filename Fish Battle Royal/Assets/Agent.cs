@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,14 +13,10 @@ public class Agent : MonoBehaviour
     public GameObject Tail;
     public Rigidbody2D RB;
 
-    //Input stuff
-    int VisionResolution = 8;
-    float VisionFallOff = 1;
-
     //Physics related stuff
     float PrevAngle = 0;
     float Speed = 0;
-    float ResidualSpeed = 0f;
+    float ResidualSpeed = 1f;
 
     public bool Dead = false;
 
@@ -31,6 +28,8 @@ public class Agent : MonoBehaviour
         RB.velocity = Vector2.zero;
         RB.angularVelocity = 0;
         Fitness = 0;
+        Ammo = 0;
+        TimeWithoutAmmo = 500;
     }
 
     // Start is called before the first frame update
@@ -43,9 +42,14 @@ public class Agent : MonoBehaviour
     float FireRate = 3;
     bool FirstTrigger = true;
 
+    [NonSerialized]
+    public float TimeWithoutAmmo = 500;
+
+    bool Shooting = true;
+
     void Shoot()
     {
-        if (Ammo > 0)
+        if (Shooting && Ammo > 0)
         {
             GameObject O = Instantiate(Projectile);
             Projectile P = O.GetComponent<Projectile>();
@@ -57,14 +61,28 @@ public class Agent : MonoBehaviour
         }
     }
 
+    public void Copy(Agent A)
+    {
+        Speed = A.Speed;
+        PrevAngle = A.PrevAngle;
+        RB.velocity = A.RB.velocity;
+        RB.angularVelocity = A.RB.angularVelocity;
+    }
+
     public float Fitness;
 
     public int Ammo = 0;
+    [NonSerialized]
     public int MaxAmmo = 5;
 
     public Vector3 SpawnPoint;
 
     RaycastHit2D Ray;
+
+    List<Agent> Agents = new List<Agent>();
+    List<Ammo> Ammos = new List<Ammo>();
+    List<Projectile> Projs = new List<Projectile>();
+
     // Update is called once per frame
     public void FixedUpdate()
     {
@@ -78,6 +96,17 @@ public class Agent : MonoBehaviour
 
         if (Dead) return;
 
+        Vector3 Pos = transform.position;
+        if (Pos.x < -90) { Pos.x = -90; RB.velocity = new Vector2(0, RB.velocity.y); }
+        else if (Pos.x > 90) { Pos.x = 90; RB.velocity = new Vector2(0, RB.velocity.y); }
+        if (Pos.y < -90) { Pos.y = -90; RB.velocity = new Vector2(RB.velocity.x, 0); }
+        else if (Pos.y > 90) { Pos.y = 90; RB.velocity = new Vector2(RB.velocity.x, 0); }
+        transform.position = Pos;
+
+        /*TimeWithoutAmmo -= Time.fixedDeltaTime;
+        if (TimeWithoutAmmo <= 0)
+            Dead = true;*/
+
         Fitness += Time.fixedDeltaTime + 3 * Speed * Time.fixedDeltaTime;
 
         //Network configuration
@@ -85,65 +114,40 @@ public class Agent : MonoBehaviour
         int OutputOffset = Group.GetOutputOffset(Network);
 
         //Input configuration
+        Group.Inputs[InputOffset + 9] = Ammo == 0 ? -1 : Ammo == MaxAmmo ? 1 : 0;
 
-        //16 "eyes" for walls and projectiles
-        //16 "eyes" for fish and ammo
-
-        Quaternion Rot = transform.rotation;
-        for (int i = 0; i < VisionResolution; i++)
+        for (int i = 0; i < 3; i++)
         {
-            Ray = Physics2D.Raycast(transform.position, Rot * Vector2.up);
-            if (Ray.collider != null)
-            {
-                Agent A = Ray.collider.GetComponent<Agent>();
-                Projectile P = Ray.collider.GetComponent<Projectile>();
-                Wall W = Ray.collider.GetComponent<Wall>();
-                Ammo AM = Ray.collider.GetComponent<Ammo>();
-
-                if (A != null)
-                {
-                    if (A.Dead)
-                    {
-                        Group.Inputs[InputOffset + i] = 0;
-                        Group.Inputs[InputOffset + VisionResolution + i] = -VisionFallOff / (Vector2.Distance(transform.position, A.transform.position) + VisionFallOff);
-                    }
-                    else
-                    {
-                        Group.Inputs[InputOffset + i] = VisionFallOff / (Vector2.Distance(transform.position, A.transform.position) + VisionFallOff);
-                        Group.Inputs[InputOffset + VisionResolution + i] = 0;
-                    }
-                }
-                else if (P != null && P.Parent != this)
-                {
-                    Group.Inputs[InputOffset + i] = 0;
-                    Group.Inputs[InputOffset + VisionResolution + i] = VisionFallOff / (Vector2.Distance(transform.position, P.transform.position) + VisionFallOff);
-                }
-                else if (W != null)
-                {
-                    Group.Inputs[InputOffset + i] = 0;
-                    Group.Inputs[InputOffset + VisionResolution + i] = -VisionFallOff / (Vector2.Distance(transform.position, W.transform.position) + VisionFallOff);
-                }
-                else if (AM != null)
-                {
-                    Group.Inputs[InputOffset + i] = -VisionFallOff / (Vector2.Distance(transform.position, AM.transform.position) + VisionFallOff);
-                    Group.Inputs[InputOffset + VisionResolution + i] = 0;
-                }
-                else
-                {
-                    Group.Inputs[InputOffset + i] = 0;
-                    Group.Inputs[InputOffset + VisionResolution + i] = 0;
-                }
-            }
-            else
+            if (i >= Agents.Count)
             {
                 Group.Inputs[InputOffset + i] = 0;
-                Group.Inputs[InputOffset + VisionResolution + i] = 0;
+                continue;
             }
-            Rot.eulerAngles += new Vector3(0, 0, 360f / VisionResolution);
+            float A = Vector2.SignedAngle(Agents[i].transform.position - transform.position, transform.rotation * Vector2.up) / 180;
+            Group.Inputs[InputOffset + i] = A;
         }
 
-        Group.Inputs[InputOffset + VisionResolution * 2] = Group.Outputs[OutputOffset];
-        Group.Inputs[InputOffset + VisionResolution * 2 + 1] = Ammo == 0 ? -1 : Ammo == MaxAmmo ? 1 : 0;
+        for (int i = 0; i < 3; i++)
+        {
+            if (i >= Ammos.Count)
+            {
+                Group.Inputs[InputOffset + i] = 0;
+                continue;
+            }
+            float A = Vector2.SignedAngle(Ammos[i].transform.position - transform.position, transform.rotation * Vector2.up) / 180;
+            Group.Inputs[InputOffset + 3 + i] = A;
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            if (i >= Projs.Count)
+            {
+                Group.Inputs[InputOffset + i] = 0;
+                continue;
+            }
+            float A = Vector2.SignedAngle(Projs[i].transform.position - transform.position, transform.rotation * Vector2.up) / 180;
+            Group.Inputs[InputOffset + 6 + i] = A;
+        }
 
         //Shooting
         if (Group.Outputs[OutputOffset + 1] > 0)
@@ -207,5 +211,50 @@ public class Agent : MonoBehaviour
         RB.velocity *= 0.95f;
         Speed *= 0.95f;
         RB.angularVelocity *= 0.95f;
+    }
+
+    public void RemoveAm(Ammo A)
+    {
+        Ammos.Remove(A);
+    }
+
+    private void OnTriggerEnter2D(Collider2D Other)
+    {
+        Agent A = Other.GetComponent<Agent>();
+        if (A != null && !A.Dead)
+        {
+            Agents.Add(A);
+            return;
+        }
+        Ammo AM = Other.GetComponent<Ammo>();
+        if (AM != null)
+        {
+            Ammos.Add(AM);
+        }
+        Projectile P = Other.GetComponent<Projectile>();
+        if (P != null)
+        {
+            Projs.Add(P);
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D Other)
+    {
+        Agent A = Other.GetComponent<Agent>();
+        if (A != null && !A.Dead)
+        {
+            Agents.Remove(A);
+            return;
+        }
+        Ammo AM = Other.GetComponent<Ammo>();
+        if (AM != null)
+        {
+            Ammos.Remove(AM);
+        }
+        Projectile P = Other.GetComponent<Projectile>();
+        if (P != null)
+        {
+            Projs.Remove(P);
+        }
     }
 }
